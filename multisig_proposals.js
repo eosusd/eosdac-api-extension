@@ -262,25 +262,25 @@ class MultisigProposalsHandler {
             db,
             code: this.msig_contract,
             scope: proposer,
-            table: 'approvals2',
+            table: 'approvals',
             block_num: check_block,
             data_query
         });
         if (res_approvals.count) {
-            output.requested_approvals = res_approvals.results[0].data.requested_approvals.map((p) => {
-	    return p.level;
-	    });
+            output.requested_approvals = res_approvals.results[0].data.requested_approvals
         } else {
           const res_approvals = await eosTableAtBlock({
             db,
             code: this.msig_contract,
             scope: proposer,
-            table: 'approvals',
+            table: 'approvals2',
             block_num: check_block,
             data_query
           });
 	    if (res_approvals.count) {
-               output.requested_approvals = res_approvals.results[0].data.requested_approvals;
+               output.requested_approvals = res_approvals.results[0].data.requested_approvals.map((p) => {
+	    return p.level;
+	    });
             }
 	}
 
@@ -350,7 +350,21 @@ class MultisigProposalsHandler {
 
 
         // Get the latest provided approvals
-        const query_provided = {db: db, code: this.msig_contract, scope: proposer, table: 'approvals2', data_query};
+        const query_provided = {db: db, code: this.msig_contract, scope: proposer, table: 'approvals', data_query};
+        if (end_block) {
+            query_provided.block_num = end_block
+        }
+        console.log('Querying approvals', query_provided);
+
+        const provided = await eosTableAtBlock(query_provided);
+        if (provided.count) {
+             console.log('Provided approvals', provided.results[0].data.provided_approvals);
+            output.provided_approvals = provided.results[0].data.provided_approvals
+        } else {
+             console.log('approvals has zero rows trying approvals2 table');
+          //  output.provided_approvals = []
+     
+	const query_provided = {db: db, code: this.msig_contract, scope: proposer, table: 'approvals2', data_query};
         if (end_block) {
             query_provided.block_num = end_block
         }
@@ -362,20 +376,6 @@ class MultisigProposalsHandler {
             output.provided_approvals = provided.results[0].data.provided_approvals.map((p) => {
 	    return p.level;
 	    });
-        } else {
-             console.log('approvals2 has zero rows trying approvals table');
-          //  output.provided_approvals = []
-     
-	const query_provided = {db: db, code: this.msig_contract, scope: proposer, table: 'approvals', data_query};
-        if (end_block) {
-            query_provided.block_num = end_block
-        }
-        console.log('Querying approvals', query_provided);
-
-        const provided = await eosTableAtBlock(query_provided);
-        if (provided.count) {
-             console.log('Provided approvals', provided.results[0].data.provided_approvals);
-            output.provided_approvals = provided.results[0].data.provided_approvals
         } else {
              console.log('Resetting provided_approvals');
             output.provided_approvals = []
