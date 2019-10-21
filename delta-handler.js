@@ -112,9 +112,10 @@ class DeltaHandler {
 
                                         this.queueDeltaRow('contract_row', block_num, row, block_timestamp)
                                     }
-				    else if (code === msig_contract && ['proposal', 'approvals', 'approvals2'.includes(table)){
+				    else if (code === msig_contract && ['proposal', 'approvals', 'approvals2'].includes(table)){
                                 	this.queueDeltaRow('contract_row', block_num, row, block_timestamp)
 				    }
+				}
                             } catch (e) {
                                 console.error(`Error processing row.data for ${block_num} : ${e.message}`);
                             }
